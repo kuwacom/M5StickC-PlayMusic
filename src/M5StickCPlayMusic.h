@@ -3,15 +3,20 @@
 
 #include <Arduino.h>
 
+typedef void (*PlayMusicCallbackFunction)(int index, uint8_t sample);
+
 class M5StickCPlayMusic
 {
 public:
     M5StickCPlayMusic(int pin);
     void begin();
-    void playMusic(const uint8_t *music_data, uint16_t sample_rate);
+    void setVolume(double volume);
+    void playMusic(const uint8_t *musicData, uint16_t sampleRate, PlayMusicCallbackFunction callback);
+    void playMusicNoCallback(const uint8_t *musicData, uint16_t sampleRate);
 
 private:
     int _pin;
+    double _volume;
 };
 
 #endif

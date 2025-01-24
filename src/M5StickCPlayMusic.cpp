@@ -4,6 +4,7 @@
 M5StickCPlayMusic::M5StickCPlayMusic(int pin)
 {
     _pin = pin;
+    _volume = 1;
 }
 
 // M5StickCをセットアップする用の関数
@@ -18,23 +19,36 @@ void M5StickCPlayMusic::begin()
     pinMode(_pin, OUTPUT); // 出力モードに設定
 }
 
-void M5StickCPlayMusic::playMusic(const uint8_t *music_data, uint16_t sample_rate)
+void M5StickCPlayMusic::setVolume(double volume)
 {
-    uint32_t length = strlen((char *)music_data);                // 音源データの長さ
-    uint16_t delay_interval = ((uint32_t)1000000 / sample_rate); // サンプル間隔（マイクロ秒）
+    _volume = volume;
+}
+
+void M5StickCPlayMusic::playMusic(const uint8_t *musicData, uint16_t sampleRate, PlayMusicCallbackFunction callback)
+{
+    uint32_t length = strlen((char *)musicData);
+    uint16_t delayInterval = ((uint32_t)1000000 / sampleRate);
 
     for (int i = 0; i < length; i++)
     {
-        // dacWrite(_pin, music_data[i]);
-        if (music_data[i] > 128)
+        dacWrite(_pin, musicData[i] * _volume);
+        if (callback != nullptr)
         {
-            digitalWrite(_pin, HIGH); // 波形がプラスの時HIGH
+            // インデックスと音の値を渡す
+            callback(i, musicData[i]);
         }
-        else
-        {
-            digitalWrite(_pin, LOW); // 波形がマイナスの時LOW
-        }
+        delayMicroseconds(delayInterval);
+    }
+}
 
-        delayMicroseconds(delay_interval); // サンプル間隔で待機
+void M5StickCPlayMusic::playMusicNoCallback(const uint8_t *musicData, uint16_t sampleRate)
+{
+    uint32_t length = strlen((char *)musicData);
+    uint16_t delayInterval = ((uint32_t)1000000 / sampleRate);
+
+    for (int i = 0; i < length; i++)
+    {
+        dacWrite(_pin, musicData[i] * _volume);
+        delayMicroseconds(delayInterval);
     }
 }
